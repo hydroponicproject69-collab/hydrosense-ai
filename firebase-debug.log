@@ -1,0 +1,32 @@
+[debug] [2026-04-15T02:53:48.757Z] ----------------------------------------------------------------------
+[debug] [2026-04-15T02:53:48.759Z] Command:       /opt/homebrew/Cellar/node/25.9.0_2/bin/node /opt/homebrew/bin/firebase deploy --only hosting
+[debug] [2026-04-15T02:53:48.759Z] CLI Version:   15.14.0
+[debug] [2026-04-15T02:53:48.759Z] Platform:      darwin
+[debug] [2026-04-15T02:53:48.759Z] Node Version:  v25.9.0
+[debug] [2026-04-15T02:53:48.759Z] Time:          Wed Apr 15 2026 08:23:48 GMT+0530 (India Standard Time)
+[debug] [2026-04-15T02:53:48.759Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-04-15T02:53:49.085Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-15T02:53:49.085Z] > authorizing via signed-in user (jyothiraditya030@gmail.com)
+[debug] [2026-04-15T02:53:49.085Z] [iam] checking project hydroponicfarm-d6494 for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-04-15T02:53:49.086Z] Checked if tokens are valid: true, expires at: 1776225147527
+[debug] [2026-04-15T02:53:49.086Z] Checked if tokens are valid: true, expires at: 1776225147527
+[debug] [2026-04-15T02:53:49.086Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/hydroponicfarm-d6494:testIamPermissions [none]
+[debug] [2026-04-15T02:53:49.086Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/hydroponicfarm-d6494:testIamPermissions  x-goog-user-project=hydroponicfarm-d6494
+[debug] [2026-04-15T02:53:49.086Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/hydroponicfarm-d6494:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-04-15T02:53:50.078Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/hydroponicfarm-d6494:testIamPermissions 200
+[debug] [2026-04-15T02:53:50.079Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/hydroponicfarm-d6494:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-04-15T02:53:50.079Z] Checked if tokens are valid: true, expires at: 1776225147527
+[debug] [2026-04-15T02:53:50.079Z] Checked if tokens are valid: true, expires at: 1776225147527
+[debug] [2026-04-15T02:53:50.079Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/hydroponicfarm-d6494 [none]
+[debug] [2026-04-15T02:53:50.850Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/hydroponicfarm-d6494 200
+[debug] [2026-04-15T02:53:50.850Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/hydroponicfarm-d6494 {"projectId":"hydroponicfarm-d6494","projectNumber":"914216358999","displayName":"HydroponicFarm","name":"projects/hydroponicfarm-d6494","resources":{"hostingSite":"hydroponicfarm-d6494","realtimeDatabaseInstance":"hydroponicfarm-d6494-default-rtdb"},"state":"ACTIVE","etag":"1_fffed1ab-1625-4200-a132-243e491713cb"}
+[info] 
+[info] === Deploying to 'hydroponicfarm-d6494'...
+[info] 
+[info] i  deploying hosting 
+[debug] [2026-04-15T02:53:50.857Z] Checked if tokens are valid: true, expires at: 1776225147527
+[debug] [2026-04-15T02:53:50.857Z] Checked if tokens are valid: true, expires at: 1776225147527
+[debug] [2026-04-15T02:53:50.858Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/hydroponicfarm-d6494/versions [none]
+[debug] [2026-04-15T02:53:50.858Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/hydroponicfarm-d6494/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2026-04-15T02:53:52.809Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/hydroponicfarm-d6494/versions 200

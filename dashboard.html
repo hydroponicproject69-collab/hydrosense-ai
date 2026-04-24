@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>HydroSense AI • Living Ecosystem</title>
+  
+  <!-- Favicon & PWA -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- GSAP Core -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <!-- Firebase SDK (modular) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getDatabase, ref, onValue, set, push, serverTimestamp, onChildAdded } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBHLsWUt9YnAEZGMQ1iMpuDuTNC5SZIooQ",
+      authDomain: "hydroponicfarm-d6494.firebaseapp.com",
+      databaseURL: "https://hydroponicfarm-d6494-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "hydroponicfarm-d6494",
+      storageBucket: "hydroponicfarm-d6494.firebasestorage.app",
+      messagingSenderId: "914216358999",
+      appId: "1:914216358999:web:1127fc966e734253c9bf12"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    
+    window.firebaseModules = { 
+      initializeApp, getDatabase, ref, onValue, set, push, serverTimestamp, onChildAdded,
+      getStorage, storageRef, uploadBytes, getDownloadURL, getAuth, onAuthStateChanged, signOut, app 
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const script = document.createElement('script');
+      script.src = 'script.js';
+      document.body.appendChild(script);
+    });
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 overflow-x-hidden font-['Inter'] relative selection:bg-teal-500 selection:text-white">
+
+  <!-- Ambient Ecosystem Particle Background -->
+  <div class="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-teal-900/20 via-slate-950 to-slate-950" id="ecosystemBg">
+    <div class="absolute inset-0 opacity-10" id="ambientParticles"></div>
+  </div>
+
+  <!-- Smart Toasts Container -->
+  <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-4 pointer-events-none w-80"></div>
+
+  <!-- Mobile Sidebar Backdrop -->
+  <div id="sidebarBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden md:hidden"></div>
+
+  <div class="app-container relative z-10 flex min-h-screen">
+    
+    <!-- Sidebar Redesign -->
+    <aside id="mainSidebar" class="sidebar w-64 glassmorphism border-r border-white/5 flex flex-col p-6 backdrop-blur-xl shrink-0 fixed inset-y-0 left-0 z-40 transform -translate-x-full md:relative md:translate-x-0 md:z-auto transition-transform duration-300">
+      <div class="mb-10 flex items-center justify-between md:justify-center gap-3">
+        <div class="flex items-center gap-2">
+           <i class="fas fa-tree text-teal-400 text-3xl drop-shadow-[0_0_12px_rgba(45,212,191,0.8)]"></i>
+           <span class="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-teal-400">HydroSense</span>
+        </div>
+        <button id="closeSidebarBtn" class="md:hidden text-slate-300 hover:text-white p-2">
+           <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+      <nav class="flex flex-col gap-2 flex-grow" id="sidebarNav">
+        <a href="#dashboard" data-target="view-dashboard" class="nav-item active flex items-center gap-3 p-3 rounded-xl transition duration-300 hover:bg-white/10 hover:shadow-[0_0_15px_rgba(45,212,191,0.3)] bg-white/10 text-white"><i class="fas fa-leaf text-teal-400"></i> Ecosystem</a>
+        <a href="#controls" data-target="view-controls" class="nav-item flex items-center gap-3 p-3 rounded-xl transition duration-300 hover:bg-white/5 opacity-70 hover:opacity-100"><i class="fas fa-network-wired text-teal-400"></i> Roots Control</a>
+        <a href="#history" data-target="view-analytics" class="nav-item flex items-center gap-3 p-3 rounded-xl transition duration-300 hover:bg-white/5 opacity-70 hover:opacity-100"><i class="fas fa-chart-line text-teal-400"></i> Analytics</a>
+        <a href="#account" data-target="view-account" class="nav-item flex items-center gap-3 p-3 rounded-xl transition duration-300 hover:bg-white/5 opacity-70 hover:opacity-100"><i class="fas fa-sliders-h text-teal-400"></i> Core Settings</a>
+        <a href="https://hydroponicai.netlify.app/" target="_blank" class="nav-item flex items-center gap-3 p-3 rounded-xl transition duration-300 hover:bg-white/5 opacity-70 hover:opacity-100 overflow-hidden"><i class="fas fa-download text-teal-400 shrink-0"></i> <span class="truncate text-sm">Download App</span></a>
+      </nav>
+      <div class="mt-6 pt-6 border-t border-white/10 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-300 flex items-center justify-center text-slate-900 shadow-[0_0_15px_rgba(45,212,191,0.5)]">
+          <i class="fas fa-seedling"></i>
+        </div>
+        <div class="text-sm">
+          <p class="font-semibold text-white user-name">System Admin</p>
+          <p class="text-teal-400/80 text-xs user-role">Node Master</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Active Environment -->
+    <main class="main-content flex-grow flex flex-col p-4 md:p-8 overflow-y-auto overflow-x-hidden w-full min-h-0">
+      <!-- Header -->
+      <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div class="flex items-center gap-4">
+          <button id="openSidebarBtn" class="md:hidden text-slate-300 hover:text-white p-2">
+             <i class="fas fa-bars text-xl"></i>
+          </button>
+          <h1 class="text-2xl md:text-3xl font-bold tracking-tight" id="activeViewTitle">Active Environment</h1>
+          <span class="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-semibold hidden md:flex items-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.2)] animate-pulse" id="connectionStatus">
+            <i class="fas fa-leaf"></i> Ecosystem Healthy
+          </span>
+        </div>
+        <div class="flex items-center gap-4 glassmorphism px-5 py-2 rounded-2xl border border-white/10">
+          <div class="flex items-center gap-2 text-sm tracking-widest">
+            <span class="text-slate-400 uppercase font-semibold">Health:</span>
+            <span id="healthScoreDisplay" class="text-emerald-400 font-bold">--</span>
+          </div>
+          <div class="w-px h-6 bg-white/10 mx-2"></div>
+          <div class="text-slate-300 text-sm font-medium tracking-widest" id="liveDateTime"></div>
+          <div class="w-px h-6 bg-white/10 mx-2"></div>
+          <button class="relative text-slate-300 hover:text-white transition hover:scale-110" id="refreshDataBtn"><i class="fas fa-sync-alt"></i></button>
+        </div>
+      </header>
+
+      <!-- SPA Views Container -->
+      <div id="spa-container" class="relative w-full flex flex-col flex-grow">
+
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="page-view w-full">
+
+          <!-- HEALTH HERO STRIP -->
+          <div class="health-hero mb-6">
+            <div class="health-ring-wrap">
+              <svg class="health-ring-svg" viewBox="0 0 76 76">
+                <circle class="hr-bg" cx="38" cy="38" r="33"/>
+                <circle class="hr-val" id="healthRingVal" cx="38" cy="38" r="33"/>
+              </svg>
+              <div class="health-score-num" id="healthRingNum">--</div>
+            </div>
+            <div class="health-info">
+              <div class="health-title">Ecosystem Status</div>
+              <div class="health-sub">All sensors monitored in real-time via ESP32 Dev Module</div>
+              <div class="health-tags">
+                <span class="h-tag b" id="heroTagSensors"><span class="sdot crit" id="heroSensorDot"></span> <span id="heroSensorText">Checking...</span></span>
+                <span class="h-tag b" id="heroTagEsp"><span class="sdot crit" id="heroEspDot"></span> <span id="heroEspText">ESP32 Offline</span></span>
+                <span class="h-tag b" id="heroTagFb"><span class="sdot crit" id="heroFbDot"></span> <span id="heroFbText">Firebase Checking</span></span>
+              </div>
+            </div>
+            <div class="health-divider hidden md:block"></div>
+            <div class="health-right hidden md:block">
+              <div class="health-uptime-label">Last Update</div>
+              <div class="health-uptime-val" id="heroLastUpdate">--:--:--</div>
+            </div>
+          </div>
+
+          <!-- SENSOR GRID V2 -->
+          <section class="w-full grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="sensorGrid">
+
+            <!-- Air Temp -->
+            <div class="sensor-node-v2" id="node-temp" data-type="temp"
+              style="--nc:linear-gradient(90deg,#2dd4bf,#10b981);--ng:rgba(45,212,191,0.2);--ni:rgba(45,212,191,0.1);--nb:rgba(45,212,191,0.25);">
+              <div class="v2-top">
+                <div class="v2-icon"><i class="fas fa-thermometer-half" style="color:#2dd4bf"></i></div>
+                <span class="v2-badge">Air Temp</span>
+              </div>
+              <div class="v2-value">
+                <span class="v2-num" id="tempValue">--</span>
+                <span class="v2-unit">°C</span>
+              </div>
+              <div class="v2-bottom">
+                <div class="v2-track"><div class="v2-fill" id="tempRangeBar" style="width:55%"></div></div>
+                <div class="v2-footer">
+                  <span id="tempStatus" class="v2-status text-emerald-400"><span class="sdot ok"></span> Optimal</span>
+                  <span class="v2-range">20–28°C</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Humidity -->
+            <div class="sensor-node-v2" id="node-humidity" data-type="humidity"
+              style="--nc:linear-gradient(90deg,#38bdf8,#0ea5e9);--ng:rgba(56,189,248,0.2);--ni:rgba(56,189,248,0.1);--nb:rgba(56,189,248,0.25);">
+              <div class="v2-top">
+                <div class="v2-icon"><i class="fas fa-tint" style="color:#38bdf8"></i></div>
+                <span class="v2-badge">Humidity</span>
+              </div>
+              <div class="v2-value">
+                <span class="v2-num" id="humidityValue">--</span>
+                <span class="v2-unit">%</span>
+              </div>
+              <div class="v2-bottom">
+                <div class="v2-track"><div class="v2-fill" id="humRangeBar" style="width:70%"></div></div>
+                <div class="v2-footer">
+                  <span id="humStatus" class="v2-status text-emerald-400"><span class="sdot ok"></span> Optimal</span>
+                  <span class="v2-range">60–80%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Water Temp -->
+            <div class="sensor-node-v2" id="node-watertemp" data-type="watertemp"
+              style="--nc:linear-gradient(90deg,#60a5fa,#3b82f6);--ng:rgba(96,165,250,0.2);--ni:rgba(96,165,250,0.1);--nb:rgba(96,165,250,0.25);">
+              <div class="v2-top">
+                <div class="v2-icon"><i class="fas fa-temperature-low" style="color:#60a5fa"></i></div>
+                <span class="v2-badge">Water T.</span>
+              </div>
+              <div class="v2-value">
+                <span class="v2-num" id="waterTempValue">--</span>
+                <span class="v2-unit">°C</span>
+              </div>
+              <div class="v2-bottom">
+                <div class="v2-track"><div class="v2-fill" id="waterTempRangeBar" style="width:45%"></div></div>
+                <div class="v2-footer">
+                  <span id="waterTempStatus" class="v2-status text-emerald-400"><span class="sdot ok"></span> Optimal</span>
+                  <span class="v2-range">18–24°C</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- pH -->
+            <div class="sensor-node-v2" id="node-ph" data-type="ph"
+              style="--nc:linear-gradient(90deg,#c084fc,#a855f7);--ng:rgba(192,132,252,0.2);--ni:rgba(192,132,252,0.1);--nb:rgba(192,132,252,0.25);">
+              <div class="v2-top">
+                <div class="v2-icon"><i class="fas fa-flask" style="color:#c084fc"></i></div>
+                <span class="v2-badge">pH Level</span>
+              </div>
+              <div class="v2-value">
+                <span class="v2-num" id="phValue">--</span>
+                <span class="v2-unit">pH</span>
+              </div>
+              <div class="v2-bottom">
+                <div class="v2-track"><div class="v2-fill" id="phRangeBar" style="width:60%"></div></div>
+                <div class="v2-footer">
+                  <span id="phStatus" class="v2-status text-emerald-400"><span class="sdot ok"></span> Optimal</span>
+                  <span class="v2-range">5.5–6.5</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- EC / Nutrients -->
+            <div class="sensor-node-v2" id="node-ec" data-type="ec"
+              style="--nc:linear-gradient(90deg,#fbbf24,#f59e0b);--ng:rgba(251,191,36,0.2);--ni:rgba(251,191,36,0.1);--nb:rgba(251,191,36,0.25);">
+              <div class="v2-top">
+                <div class="v2-icon"><i class="fas fa-bolt" style="color:#fbbf24"></i></div>
+                <span class="v2-badge">Nutrients</span>
+              </div>
+              <div class="v2-value">
+                <span class="v2-num" id="ecValue">--</span>
+                <span class="v2-unit">mS/cm</span>
+              </div>
+              <div class="v2-bottom">
+                <div class="v2-track"><div class="v2-fill" id="ecRangeBar" style="width:50%"></div></div>
+                <div class="v2-footer">
+                  <span id="ecStatus" class="v2-status text-emerald-400"><span class="sdot ok"></span> Optimal</span>
+                  <span class="v2-range">1.2–2.0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Lux / Light (hidden flow node kept for JS compat) -->
+            <div class="sensor-node-v2 hidden" id="node-flow" data-type="flow"
+              style="--nc:linear-gradient(90deg,#22d3ee,#06b6d4);--ng:rgba(34,211,238,0.2);--ni:rgba(34,211,238,0.1);--nb:rgba(34,211,238,0.25);">
+              <div class="v2-top">
+                <div class="v2-icon"><i class="fas fa-water" style="color:#22d3ee"></i></div>
+                <span class="v2-badge">Flow</span>
+              </div>
+              <div class="v2-value"><span class="v2-num" id="flowValue">--</span><span class="v2-unit">L/m</span></div>
+              <div class="v2-bottom">
+                <div class="v2-track"><div class="v2-fill" style="width:60%"></div></div>
+                <div class="v2-footer">
+                  <span id="flowStatus" class="v2-status text-emerald-400"><span class="sdot ok"></span> Flowing</span>
+                  <span class="v2-range">&gt;1.5 L</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="sensor-node-v2" id="node-light" data-type="light"
+              style="--nc:linear-gradient(90deg,#fb923c,#f97316);--ng:rgba(251,146,60,0.2);--ni:rgba(251,146,60,0.1);--nb:rgba(251,146,60,0.25);">
+              <div class="v2-top">
+                <div class="v2-icon"><i class="fas fa-sun" style="color:#fb923c"></i></div>
+                <span class="v2-badge">Lux</span>
+              </div>
+              <div class="v2-value">
+                <span class="v2-num" id="lightValue">--</span>
+                <span class="v2-unit">lx</span>
+              </div>
+              <div class="v2-bottom">
+                <div class="v2-track"><div class="v2-fill" id="lightRangeBar" style="width:65%"></div></div>
+                <div class="v2-footer">
+                  <span id="lightStatus" class="v2-status text-emerald-400"><span class="sdot ok"></span> Good</span>
+                  <span class="v2-range">&gt;5000</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vitals -->
+            <div class="sensor-node-v2 md:col-span-2" id="node-water" data-type="water"
+              style="--nc:linear-gradient(90deg,#34d399,#10b981);--ng:rgba(52,211,153,0.2);--ni:rgba(52,211,153,0.1);--nb:rgba(52,211,153,0.25);">
+              <div class="v2-top">
+                <div class="v2-icon"><i class="fas fa-layer-group" style="color:#34d399"></i></div>
+                <span class="v2-badge">Vitals</span>
+              </div>
+              <div class="v2-value">
+                <span class="v2-num" id="waterValue">--</span>
+                <span class="v2-unit">% Tank</span>
+              </div>
+              <div class="v2-bottom">
+                <div class="v2-track"><div class="v2-fill" id="waterLevelBar" style="width:0%"></div></div>
+                <div class="v2-footer">
+                  <span class="v2-status text-slate-400 text-[0.62rem]">Floor Leak: <span id="leakValue" class="text-emerald-400 font-bold">Secure</span></span>
+                  <span id="leakStatus" class="v2-range"></span>
+                </div>
+              </div>
+            </div>
+
+          </section>
+
+          <!-- AI VISION / ESP32-CAM LIVE STREAM -->
+          <div class="glass-card p-6 md:p-8 rounded-3xl mx-auto w-full mb-8 relative overflow-hidden group border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.4)]" id="aiVisionDashboardCard">
+            <div class="absolute inset-0 bg-emerald-500/5 z-0 group-hover:bg-emerald-500/8 transition duration-1000" id="aiBgOverlayDashboard"></div>
+
+            <div class="relative z-10 flex flex-col md:flex-row gap-8 items-stretch h-full">
+
+              <!-- Camera Stream Panel -->
+              <div class="w-full md:w-1/2 rounded-2xl overflow-hidden relative border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] bg-slate-900 flex flex-col" style="min-height:260px">
+
+                <!-- Scan line animation -->
+                <div class="absolute top-0 left-0 w-full h-0.5 bg-emerald-400 shadow-[0_0_12px_#34d399] z-20 opacity-0" id="aiScanLine"></div>
+
+                <!-- Live stream img (hidden until connected) -->
+                <img id="camStreamImg" src="" alt="Camera Stream"
+                  class="w-full h-full object-cover hidden"
+                  onerror="window.onCamError()">
+
+                <!-- Offline placeholder (shown when not connected) -->
+                <div id="camOfflinePlate" class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-900/90">
+                  <div class="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+                    <i class="fas fa-camera text-3xl text-slate-600"></i>
+                  </div>
+                  <p class="text-slate-500 text-sm font-semibold">Camera Not Connected</p>
+                  <p class="text-slate-600 text-xs">Enter your ESP32-CAM IP below</p>
+                </div>
+
+                <!-- Camera status badge -->
+                <div class="absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold backdrop-blur-md border" id="camStatusBadge"
+                  style="background:rgba(248,113,113,0.15); border-color:rgba(248,113,113,0.3); color:#f87171">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-400" id="camStatusDot"></span>
+                  <span id="camStatusText">Offline</span>
+                </div>
+
+                <!-- Fullscreen button -->
+                <button id="camFullscreenBtn" onclick="document.getElementById('camStreamImg').requestFullscreen?.()"
+                  class="absolute top-3 right-3 z-20 w-8 h-8 rounded-lg bg-black/40 border border-white/10 text-white hover:bg-white/10 transition flex items-center justify-center hidden">
+                  <i class="fas fa-expand text-xs"></i>
+                </button>
+
+                <!-- Bottom label overlay -->
+                <div class="absolute inset-x-0 bottom-0 py-3 px-4 bg-gradient-to-t from-black/80 to-transparent flex justify-between items-end z-10">
+                  <div>
+                    <span class="text-xs tracking-widest text-slate-300 uppercase mb-1 block">Live Analysis</span>
+                    <span id="dashboardAiResultText" class="text-emerald-400 font-bold drop-shadow-md text-lg">Lactuca sativa — Healthy</span>
+                  </div>
+                  <span class="px-3 py-1 bg-emerald-500/20 border border-emerald-500/50 rounded text-emerald-300 text-sm font-bold backdrop-blur-md" id="dashboardAiConfidence">98% CONF</span>
+                </div>
+              </div>
+
+              <!-- Right Panel -->
+              <div class="w-full md:w-1/2 flex flex-col justify-between h-full gap-5">
+
+                <div>
+                  <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-2">
+                    <i class="fas fa-video text-teal-400"></i> Vision Cortex
+                  </h3>
+                  <h2 class="text-2xl font-bold text-white mb-3">ESP32-CAM Live Feed</h2>
+                  <p class="text-slate-400 text-sm leading-relaxed" id="dashboardAiDescription">
+                    Stream live video from your ESP32-CAM AI Thinker over your local WiFi network. Enter the camera's IP address to connect.
+                  </p>
+                </div>
+
+                <!-- Camera IP Input -->
+                <div class="flex flex-col gap-2">
+                  <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Camera IP Address</label>
+                  <div class="flex gap-2">
+                    <input id="camIpInput" type="text" placeholder="e.g. 192.168.1.105"
+                      class="flex-1 bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-slate-600 focus:outline-none focus:border-teal-500 font-mono">
+                    <button id="camConnectBtn"
+                      class="px-4 py-2.5 rounded-xl font-bold text-sm text-slate-900 transition hover:brightness-110 shadow-md whitespace-nowrap"
+                      style="background:linear-gradient(135deg,#14b8a6,#10b981)">
+                      <i class="fas fa-plug mr-1"></i> Connect
+                    </button>
+                  </div>
+                  <p class="text-slate-600 text-xs">Stream URL: <span id="camUrlPreview" class="font-mono text-slate-500">--</span></p>
+                </div>
+
+                <!-- Status row -->
+                <div class="flex items-center gap-3" id="dashboardHealthIndicator">
+                  <div class="w-2.5 h-2.5 rounded-full bg-slate-600" id="dashboardHealthDot"></div>
+                  <span class="text-sm text-slate-400 font-mono" id="dashboardHealthText">STATUS: WAITING FOR CAMERA</span>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="flex gap-3">
+                  <button id="btnScanNow"
+                    class="flex-1 py-3 px-4 rounded-xl text-sm font-bold transition text-slate-900 shadow-[0_0_15px_rgba(20,184,166,0.3)] hover:shadow-[0_0_25px_rgba(20,184,166,0.5)] hover:-translate-y-0.5"
+                    style="background:linear-gradient(135deg,#14b8a6,#10b981)">
+                    <i class="fas fa-camera mr-2"></i> Snapshot
+                  </button>
+                  <button id="camDisconnectBtn"
+                    class="flex-1 py-3 px-4 bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/30 text-slate-300 hover:text-rose-300 rounded-xl text-sm font-semibold transition">
+                    <i class="fas fa-power-off mr-2"></i> Disconnect
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTROLS VIEW -->
+        <div id="view-controls" class="page-view absolute top-0 left-0 w-full" style="display:none; opacity:0;">
+          
+          <!-- Root Vitals Sub-grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+             <div class="glass-card p-6 md:p-8 rounded-3xl flex flex-col justify-between border border-white/5 shadow-2xl">
+                <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2"><i class="fas fa-water text-teal-400"></i> Root Submersion Moisture</h3>
+                <div class="flex items-end gap-2">
+                   <span class="text-5xl font-bold text-white" id="ctrlMoistureValue">92</span><span class="text-2xl text-slate-400 font-light">%</span>
+                </div>
+                <div class="mt-4 w-full bg-slate-800/80 rounded-full h-2">
+                   <div class="bg-gradient-to-r from-teal-500 to-emerald-400 h-2 rounded-full shadow-[0_0_10px_rgba(20,184,166,0.6)]" id="ctrlMoistureBar" style="width: 92%;"></div>
+                </div>
+                <p class="text-slate-400 text-xs mt-3">High capillary uptake efficiency across deep water crop layers.</p>
+             </div>
+             
+             <div class="glass-card p-6 md:p-8 rounded-3xl flex flex-col justify-between border border-white/5 shadow-2xl">
+                <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2"><i class="fas fa-wind text-sky-400"></i> Dissolved Oxygen (DO)</h3>
+                <div class="flex items-end gap-2">
+                   <span class="text-5xl font-bold text-white" id="ctrlDoValue">8.4</span><span class="text-2xl text-slate-400 font-light">mg/L</span>
+                </div>
+                <div class="mt-4 flex gap-3">
+                   <span class="px-3 py-1 bg-sky-500/10 text-sky-400 rounded-md border border-sky-500/20 text-xs font-bold uppercase tracking-wider">Optimal Aeration</span>
+                   <span class="text-slate-400 text-xs leading-relaxed self-center">Roots breathing easily</span>
+                </div>
+             </div>
+          </div>
+
+          <!-- Nutrient Flow Visualizer (Hidden - Unsupported by hardware) -->
+          <div class="hidden glass-card p-6 md:p-8 rounded-3xl mb-8 relative overflow-hidden border border-emerald-500/20 shadow-[0_0_40px_rgba(16,185,129,0.1)]">
+             <div class="absolute inset-0 bg-emerald-900/10 mix-blend-color-burn z-0"></div>
+             <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-widest mb-6 relative z-10 flex items-center gap-2"><i class="fas fa-project-diagram text-emerald-400"></i> Core Nutrient Flow Diagnostics</h3>
+             <div class="flex flex-col md:flex-row justify-between items-center relative z-10 gap-6">
+                 <div class="flex-1 w-full flex items-center gap-4 bg-slate-900/50 p-4 rounded-xl border border-white/5">
+                    <i class="fas fa-flask text-2xl text-purple-400"></i>
+                    <div>
+                      <div class="text-sm text-slate-400 uppercase tracking-widest">Macro Payload</div>
+                      <div class="font-bold text-white text-lg" id="ctrlMacroValue">Nitrogen/K/P (Stable)</div>
+                    </div>
+                 </div>
+                 
+                 <div class="px-4 text-emerald-400 text-2xl animate-pulse">
+                    <i class="fas fa-exchange-alt"></i>
+                 </div>
+
+                 <div class="flex-1 w-full flex items-center gap-4 bg-slate-900/50 p-4 rounded-xl border border-white/5">
+                    <i class="fas fa-tachometer-alt text-2xl text-teal-400"></i>
+                    <div>
+                      <div class="text-sm text-slate-400 uppercase tracking-widest">Active Delivery</div>
+                      <div class="font-bold text-white text-lg"><span id="ctrlFlowValue">2.4</span> Liters / min</div>
+                    </div>
+                 </div>
+             </div>
+          </div>
+
+          <section class="controls-section glass-card p-6 md:p-8 rounded-3xl mb-8 border border-white/5 shadow-2xl">
+            <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-widest mb-6 flex items-center gap-2"><i class="fas fa-sitemap text-teal-400"></i> Hardware Relays</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Pump Toggle -->
+              <div class="card-control bg-white/5 border border-white/10 rounded-2xl overflow-hidden transition hover:bg-white/10" data-device="pump">
+                <div class="w-full h-28 overflow-hidden relative">
+                  <img src="img_pump.png" alt="Main Pump" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition duration-500">
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent"></div>
+                </div>
+                <div class="p-4 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-slate-800 border border-blue-500/30 shadow-inner flex items-center justify-center text-sm text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0)] transition duration-500" id="icon-pump">
+                      <i class="fas fa-water-pump"></i>
+                    </div>
+                    <div>
+                      <h4 class="font-medium text-slate-200">Main Pump</h4>
+                      <div class="text-xs text-slate-500 mt-0.5 uppercase" id="ctrlPumpStatus">Inactive</div>
+                    </div>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="pumpToggle" class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-700/50 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-500 peer-checked:shadow-[0_0_15px_rgba(20,184,166,0.5)]"></div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Lights Toggle -->
+              <div class="card-control bg-white/5 border border-white/10 rounded-2xl overflow-hidden transition hover:bg-white/10" data-device="light">
+                <div class="w-full h-28 overflow-hidden relative">
+                  <img src="img_light.png" alt="Grow Light" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition duration-500">
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent"></div>
+                </div>
+                <div class="p-4 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-slate-800 border border-amber-500/30 shadow-inner flex items-center justify-center text-sm text-amber-400 transition duration-500" id="icon-light">
+                      <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <div>
+                      <h4 class="font-medium text-slate-200">Sun Imitation</h4>
+                      <div class="text-xs text-slate-500 mt-0.5 uppercase" id="ctrlLightStatus">Inactive</div>
+                    </div>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="lightToggle" class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-700/50 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500 peer-checked:shadow-[0_0_15px_rgba(245,158,11,0.5)]"></div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Mist Toggle -->
+              <div class="card-control bg-white/5 border border-white/10 rounded-2xl overflow-hidden transition hover:bg-white/10" data-device="mist">
+                <div class="w-full h-28 overflow-hidden relative">
+                  <img src="img_mist.png" alt="Micro Mist" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition duration-500">
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-transparent"></div>
+                </div>
+                <div class="p-4 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-slate-800 border border-indigo-500/30 shadow-inner flex items-center justify-center text-sm text-indigo-400 transition duration-500" id="icon-mist">
+                      <i class="fas fa-wind"></i>
+                    </div>
+                    <div>
+                      <h4 class="font-medium text-slate-200">Micro Mist</h4>
+                      <div class="text-xs text-slate-500 mt-0.5 uppercase" id="ctrlMistStatus">Inactive</div>
+                    </div>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="mistToggle" class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-700/50 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500 peer-checked:shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- ANALYTICS VIEW -->
+        <div id="view-analytics" class="page-view absolute top-0 left-0 w-full" style="display:none; opacity:0;">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 h-full w-full">
+            <div class="p-6 md:p-8 rounded-3xl h-[400px] lg:h-[600px] flex flex-col justify-between border border-white/5 shadow-2xl bg-gradient-to-br from-[#0f172a] to-[#1e293b]">
+              <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2"><i class="fas fa-bolt text-teal-400"></i> Toxicity Flow (EC)</h3>
+              <div class="flex-grow w-full relative"><canvas id="tdsChart" class="w-full h-full absolute inset-0"></canvas></div>
+            </div>
+            <div class="p-6 md:p-8 rounded-3xl h-[400px] lg:h-[600px] flex flex-col justify-between border border-white/5 shadow-2xl bg-gradient-to-br from-[#0f172a] to-[#1e293b]">
+              <h3 class="text-sm font-semibold text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2"><i class="fas fa-thermometer-half text-rose-400"></i> Core Temp & pH</h3>
+              <div class="flex-grow w-full relative"><canvas id="tempPhChart" class="w-full h-full absolute inset-0"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CORE SETTINGS MODAL -->
+        <div id="view-account" class="fixed inset-0 z-[900] flex items-center justify-center opacity-0 pointer-events-none" style="background: rgba(10, 15, 25, 0.65); backdrop-filter: blur(10px);">
+          <div class="absolute inset-0 z-[900]" id="accountModalBackdrop"></div>
+
+          <!-- Modal Card -->
+          <div id="accountModalCard" class="relative z-[1000] rounded-3xl w-[95%] max-w-lg mx-auto transform scale-95 overflow-hidden" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 25px 60px rgba(0,0,0,0.7);">
+
+            <!-- Header -->
+            <div class="flex items-center gap-4 p-6 border-b border-white/5">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-400 flex items-center justify-center text-slate-900 shadow-[0_0_20px_rgba(45,212,191,0.4)] shrink-0">
+                <i class="fas fa-seedling text-lg"></i>
+              </div>
+              <div class="text-left">
+                <h2 id="userCoreDisplay" class="text-lg font-bold text-white">System Core</h2>
+                <p class="text-xs text-slate-400">Configure your HydroSense node</p>
+              </div>
+              <button id="closeAccountModal" class="ml-auto text-slate-400 hover:text-white transition p-2 hover:bg-white/10 rounded-xl">
+                <i class="fas fa-times text-lg"></i>
+              </button>
+            </div>
+
+            <!-- Settings Tabs -->
+            <div class="flex border-b border-white/5 text-xs font-semibold uppercase tracking-wider">
+              <button class="settings-tab active-tab flex-1 py-3 text-teal-400 border-b-2 border-teal-400 transition" data-tab="tab-thresholds"><i class="fas fa-sliders-h mr-1"></i> Thresholds</button>
+              <button class="settings-tab flex-1 py-3 text-slate-400 hover:text-white transition" data-tab="tab-display"><i class="fas fa-desktop mr-1"></i> Display</button>
+              <button class="settings-tab flex-1 py-3 text-slate-400 hover:text-white transition" data-tab="tab-data"><i class="fas fa-database mr-1"></i> Data</button>
+              <button class="settings-tab flex-1 py-3 text-slate-400 hover:text-white transition" data-tab="tab-system"><i class="fas fa-microchip mr-1"></i> System</button>
+            </div>
+
+            <!-- Scrollable body -->
+            <div class="overflow-y-auto max-h-[60vh] p-6">
+
+              <!-- TAB: THRESHOLDS -->
+              <div id="tab-thresholds" class="settings-panel space-y-5">
+                <p class="text-xs text-slate-500 mb-4">Set safe operating ranges. Sensors outside these limits will trigger alerts.</p>
+
+                <!-- Temp -->
+                <div>
+                  <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-2 mb-2"><i class="fas fa-thermometer-half text-rose-400"></i> Air Temp (°C)</label>
+                  <div class="flex gap-3">
+                    <div class="flex-1"><span class="text-[10px] text-slate-500">Min</span><input id="cfg-minTemp" type="number" value="18" min="0" max="50" class="w-full mt-1 bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-teal-500"></div>
+                    <div class="flex-1"><span class="text-[10px] text-slate-500">Max</span><input id="cfg-maxTemp" type="number" value="30" min="0" max="50" class="w-full mt-1 bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-teal-500"></div>
+                  </div>
+                </div>
+
+                <!-- pH -->
+                <div>
+                  <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-2 mb-2"><i class="fas fa-flask text-purple-400"></i> pH Level</label>
+                  <div class="flex gap-3">
+                    <div class="flex-1"><span class="text-[10px] text-slate-500">Min</span><input id="cfg-minPh" type="number" value="5.0" min="0" max="14" step="0.1" class="w-full mt-1 bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-teal-500"></div>
+                    <div class="flex-1"><span class="text-[10px] text-slate-500">Max</span><input id="cfg-maxPh" type="number" value="7.0" min="0" max="14" step="0.1" class="w-full mt-1 bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-teal-500"></div>
+                  </div>
+                </div>
+
+                <!-- EC -->
+                <div>
+                  <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-2 mb-2"><i class="fas fa-bolt text-yellow-400"></i> EC / Nutrients (mS/cm)</label>
+                  <div class="flex gap-3">
+                    <div class="flex-1"><span class="text-[10px] text-slate-500">Min</span><input id="cfg-minEc" type="number" value="1.2" min="0" max="5" step="0.1" class="w-full mt-1 bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-teal-500"></div>
+                    <div class="flex-1"><span class="text-[10px] text-slate-500">Max</span><input id="cfg-maxEc" type="number" value="2.5" min="0" max="5" step="0.1" class="w-full mt-1 bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-teal-500"></div>
+                  </div>
+                </div>
+
+                <!-- Humidity -->
+                <div>
+                  <label class="text-xs text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-2 mb-2"><i class="fas fa-tint text-sky-400"></i> Humidity (%)</label>
+                  <div class="flex gap-3">
+                    <div class="flex-1"><span class="text-[10px] text-slate-500">Min</span><input id="cfg-minHum" type="number" value="40" min="0" max="100" class="w-full mt-1 bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-teal-500"></div>
+                    <div class="flex-1"><span class="text-[10px] text-slate-500">Max</span><input id="cfg-maxHum" type="number" value="85" min="0" max="100" class="w-full mt-1 bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-teal-500"></div>
+                  </div>
+                </div>
+
+                <button id="btnSaveThresholds" class="w-full py-3 rounded-xl font-bold text-slate-900 transition hover:brightness-110 shadow-lg mt-2" style="background: linear-gradient(135deg, #14b8a6, #10b981);">
+                  <i class="fas fa-save mr-2"></i> Save Thresholds
+                </button>
+              </div>
+
+              <!-- TAB: DISPLAY -->
+              <div id="tab-display" class="settings-panel hidden space-y-5">
+
+                <!-- Temp Unit -->
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/8">
+                  <div>
+                    <p class="font-semibold text-white text-sm">Temperature Unit</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Switch between Celsius and Fahrenheit</p>
+                  </div>
+                  <div class="flex items-center gap-1 bg-slate-800 rounded-xl p-1">
+                    <button id="unitC" class="unit-btn px-3 py-1.5 rounded-lg text-sm font-bold bg-teal-500 text-slate-900 transition">°C</button>
+                    <button id="unitF" class="unit-btn px-3 py-1.5 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition">°F</button>
+                  </div>
+                </div>
+
+                <!-- Refresh Interval -->
+                <div class="p-4 rounded-2xl bg-white/5 border border-white/8">
+                  <p class="font-semibold text-white text-sm mb-1">Data Refresh Interval</p>
+                  <p class="text-xs text-slate-500 mb-3">How often the dashboard polls Firebase</p>
+                  <div class="flex gap-2">
+                    <button class="refresh-btn flex-1 py-2 rounded-xl text-sm font-bold border border-teal-500 text-teal-400 bg-teal-500/10 transition" data-interval="2000">2s</button>
+                    <button class="refresh-btn flex-1 py-2 rounded-xl text-sm font-bold border border-white/10 text-slate-400 hover:border-teal-500/50 transition" data-interval="5000">5s</button>
+                    <button class="refresh-btn flex-1 py-2 rounded-xl text-sm font-bold border border-white/10 text-slate-400 hover:border-teal-500/50 transition" data-interval="10000">10s</button>
+                  </div>
+                </div>
+
+                <!-- Dashboard Live Indicator -->
+                <div class="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/8">
+                  <div>
+                    <p class="font-semibold text-white text-sm">Sensor Glow Animations</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Animated pulse on sensor cards</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="toggleGlow" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-500"></div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- TAB: DATA -->
+              <div id="tab-data" class="settings-panel hidden space-y-5">
+
+                <!-- Export CSV -->
+                <div class="p-4 rounded-2xl bg-white/5 border border-white/8">
+                  <p class="font-semibold text-white text-sm mb-1"><i class="fas fa-file-csv text-emerald-400 mr-2"></i>Export Sensor Log</p>
+                  <p class="text-xs text-slate-500 mb-4">Download all session sensor readings as a CSV file</p>
+                  <button id="btnExportCSV" class="w-full py-3 rounded-xl font-bold text-white border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-download"></i> Download CSV
+                  </button>
+                </div>
+
+                <!-- Clear History -->
+                <div class="p-4 rounded-2xl bg-white/5 border border-white/8">
+                  <p class="font-semibold text-white text-sm mb-1"><i class="fas fa-history text-amber-400 mr-2"></i>Session History</p>
+                  <p class="text-xs text-slate-500 mb-4">Clear chart history from this session's memory</p>
+                  <button id="btnClearHistory" class="w-full py-3 rounded-xl font-bold text-amber-300 border border-amber-500/30 hover:bg-amber-500/10 transition">
+                    <i class="fas fa-broom mr-2"></i> Clear Chart History
+                  </button>
+                </div>
+
+                <!-- Wipe Protocol -->
+                <div class="p-4 rounded-2xl bg-rose-500/5 border border-rose-500/20">
+                  <p class="font-semibold text-rose-300 text-sm mb-1"><i class="fas fa-trash mr-2"></i>Wipe Protocol</p>
+                  <p class="text-xs text-slate-500 mb-4">Reset all node local memory and Firebase config</p>
+                  <button id="btnWipe" class="w-full py-3 rounded-xl font-bold text-rose-300 border border-rose-500/30 hover:bg-rose-500/10 transition">
+                    <i class="fas fa-exclamation-triangle mr-2"></i> Initiate Wipe
+                  </button>
+                </div>
+              </div>
+
+              <!-- TAB: SYSTEM -->
+              <div id="tab-system" class="settings-panel hidden space-y-4">
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="p-4 rounded-2xl bg-white/5 border border-white/8 text-center">
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Firmware</p>
+                    <p class="text-white font-bold text-sm">v2.4.1</p>
+                  </div>
+                  <div class="p-4 rounded-2xl bg-white/5 border border-white/8 text-center">
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Board</p>
+                    <p class="text-white font-bold text-sm">ESP32 Dev</p>
+                  </div>
+                  <div class="p-4 rounded-2xl bg-white/5 border border-white/8 text-center">
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">DB Region</p>
+                    <p class="text-white font-bold text-sm">asia-se1</p>
+                  </div>
+                  <div class="p-4 rounded-2xl bg-white/5 border border-white/8 text-center">
+                    <p class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Session</p>
+                    <p class="text-teal-400 font-bold text-sm" id="sysUptime">--</p>
+                  </div>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-white/5 border border-white/8">
+                  <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-3">Node Health</p>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-slate-400">ESP32 Connection</span>
+                    <span class="text-xs font-bold text-emerald-400" id="sysEspStatus">Checking...</span>
+                  </div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-slate-400">Firebase RTDB</span>
+                    <span class="text-xs font-bold text-emerald-400">Connected</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-slate-400">Active Sensors</span>
+                    <span class="text-xs font-bold text-white">7 / 7</span>
+                  </div>
+                </div>
+
+                <button id="btnFirmware" class="w-full py-3 rounded-xl font-bold text-white transition hover:brightness-110 shadow-md flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #14b8a6, #10b981);">
+                  <i class="fas fa-sync-alt"></i> Check Firmware Update
+                </button>
+
+                <a href="#" class="w-full py-3 rounded-xl font-semibold text-rose-400 border border-rose-500/20 hover:bg-rose-500/10 transition flex items-center justify-center gap-2" id="logoutBtn">
+                  <i class="fas fa-power-off"></i> Log Out
+                </a>
+              </div>
+
+            </div><!-- end scrollable body -->
+          </div><!-- end modal card -->
+        </div>
+
+
+      </div>
+
+    </main>
+  </div>
+  <!-- Mobile Growing Plant Decoration (above bottom nav, pointer-events none) -->
+  <div class="mobile-plant-deco" aria-hidden="true">
+    <svg viewBox="0 0 34 100" fill="none" xmlns="http://www.w3.org/2000/svg" width="34" height="100">
+      <defs>
+        <linearGradient id="mpd-sg" x1="17" y1="100" x2="17" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0%"   stop-color="#2dd4bf"/>
+          <stop offset="55%"  stop-color="#34d399"/>
+          <stop offset="100%" stop-color="#4ade80"/>
+        </linearGradient>
+      </defs>
+      <!-- Main Stem: draws from bottom to top -->
+      <path class="mpd-stem"
+            d="M17 98 Q15 82 17 68 Q19 52 16 36 Q15 22 17 6"
+            stroke="url(#mpd-sg)" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Left Leaf -->
+      <path class="mpd-leaf-l"
+            d="M16 64 Q3 54 7 40"
+            stroke="#4ade80" stroke-width="2" stroke-linecap="round"/>
+      <!-- Right Leaf -->
+      <path class="mpd-leaf-r"
+            d="M17 46 Q31 35 27 20"
+            stroke="#2dd4bf" stroke-width="2" stroke-linecap="round"/>
+      <!-- Tip Bud -->
+      <circle class="mpd-tip" cx="17" cy="5" r="4.5" fill="#4ade80"/>
+    </svg>
+  </div>
+
+</body>
+</html>

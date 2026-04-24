@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HydroSense AI • Authentication</title>
+  
+  <!-- Favicon & PWA -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="auth_style.css">
+
+  <script type="module">
+    // Import modular Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBHLsWUt9YnAEZGMQ1iMpuDuTNC5SZIooQ",
+      authDomain: "hydroponicfarm-d6494.firebaseapp.com",
+      databaseURL: "https://hydroponicfarm-d6494-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "hydroponicfarm-d6494",
+      storageBucket: "hydroponicfarm-d6494.firebasestorage.app",
+      messagingSenderId: "914216358999",
+      appId: "1:914216358999:web:1127fc966e734253c9bf12"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    
+    // Mount to window for generic JS access without file:// CORS blocks
+    window.firebaseAuthModules = {
+      app,
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc,
+      serverTimestamp
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const script = document.createElement('script');
+      script.src = 'auth.js';
+      document.body.appendChild(script);
+    });
+  </script>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="hydro-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="auth-container expanded" id="authBox">
+    <button id="skipAuthBtn" class="close-btn" title="Skip Authentication"><i class="fas fa-times"></i></button>
+
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen">
+      <div class="auth-header animate-fade-in-up" style="margin-bottom: 20px;">
+        <i class="fas fa-leaf animate-leaf" style="font-size: 3.5rem; color: var(--primary-accent); margin-bottom: 10px;"></i>
+        <h1 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 4px;">Welcome to <span style="color: var(--primary-accent)">HydroSense</span></h1>
+        <p style="color: #cbd5e1; font-weight: 500; font-size: 1.05rem; letter-spacing: 0.3px;">Empowering Smart Agriculture with Precision AI</p>
+      </div>
+
+      <div class="suggestions-container animate-fade-in-up delay-200">
+        <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 25px;">
+           <span style="height: 1px; flex: 1; background: linear-gradient(to right, transparent, var(--border-subtle));"></span>
+           <h3 style="margin: 0 20px; font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px;"><i class="fas fa-microchip" style="color: var(--primary-accent); margin-right: 8px;"></i> Smart Features</h3>
+           <span style="height: 1px; flex: 1; background: linear-gradient(to left, transparent, var(--border-subtle));"></span>
+        </div>
+        <ul class="suggestion-list">
+          <li class="animate-fade-in-up delay-400">
+            <i class="fas fa-camera"></i> 
+            <span><strong>AI Disease Detection</strong> Computer vision spots plant stress & anomalies early.</span>
+          </li>
+          <li class="animate-fade-in-up delay-500">
+            <i class="fas fa-temperature-low"></i> 
+            <span><strong>Climate Control</strong> Responsive fans and misting for optimal environments.</span>
+          </li>
+          <li class="animate-fade-in-up delay-600">
+            <i class="fas fa-bell"></i> 
+            <span><strong>Real-Time Alerts</strong> Instant push notifications for leaks and out-of-bound issues.</span>
+          </li>
+          <li class="animate-fade-in-up delay-700">
+            <i class="fas fa-chart-area"></i> 
+            <span><strong>Predictive Analytics</strong> Long-term trend analysis for growth cycle planning.</span>
+          </li>
+          <li class="animate-fade-in-up delay-800">
+            <i class="fas fa-water"></i> 
+            <span><strong>Water Conservation</strong> Ultrasonic monitoring prevents dry-running pumps.</span>
+          </li>
+          <li class="animate-fade-in-up delay-800">
+            <i class="fas fa-mobile-alt"></i> 
+            <span><strong>Remote Actuators</strong> Toggle farm equipment seamlessly from anywhere.</span>
+          </li>
+        </ul>
+      </div>
+
+      <button id="getStartedBtn" class="btn-primary animate-fade-in-up delay-800" style="margin-top: 25px; font-size: 1.1rem; padding: 14px;">
+        Get Started <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+
+    <!-- Auth Forms Container -->
+    <div id="authForms" class="hidden">
+      <div class="auth-header">
+        <i class="fas fa-leaf"></i>
+        <h1>HydroSense AI</h1>
+        <p id="authSubtitle">Sign in to manage your farm.</p>
+      </div>
+
+    <!-- Error message display -->
+    <span id="errorMsg" class="error-message"></span>
+
+    <!-- Google Login Button -->
+    <button id="googleBtn" class="btn-google">
+      <div class="google-icon-wrapper">
+        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+          <g>
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+            <path fill="none" d="M0 0h48v48H0z"></path>
+          </g>
+        </svg>
+      </div>
+      Continue with Google
+    </button>
+
+    <div class="divider">OR</div>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="loginEmail">Email Address</label>
+        <input type="email" id="loginEmail" placeholder="farmer@hydrosense.ai" required>
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn-primary" id="loginSubmitBtn">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </button>
+      <div class="auth-footer">
+        Don't have an account? <a id="showSignup">Create one</a>
+      </div>
+    </form>
+
+    <!-- SIGNUP FORM -->
+    <form id="signupForm" class="hidden">
+      <div class="form-group">
+        <label for="signupName">Full Name</label>
+        <input type="text" id="signupName" placeholder="Dr. Botanist" required>
+      </div>
+      <div class="form-group">
+        <label for="signupEmail">Email Address</label>
+        <input type="email" id="signupEmail" placeholder="farmer@hydrosense.ai" required>
+      </div>
+      <div class="form-group">
+        <label for="signupPassword">Password</label>
+        <input type="password" id="signupPassword" placeholder="At least 6 characters" required minlength="6">
+      </div>
+      <button type="submit" class="btn-primary" id="signupSubmitBtn">
+        <i class="fas fa-user-plus"></i> Create Account
+      </button>
+      <div class="auth-footer">
+        Already have an account? <a id="showLogin">Sign in</a>
+      </div>
+    </form>
+    </div>
+  </div>
+</body>
+</html>
