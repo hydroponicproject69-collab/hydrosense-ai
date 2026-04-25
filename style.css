@@ -1132,8 +1132,8 @@ input:checked + .slider:before {
     -webkit-backdrop-filter: none !important;
   }
 
-  /* Replace glassmorphism with solid bg */
-  .glassmorphism {
+  /* Replace glassmorphism with solid bg — but NOT the sidebar (it has its own bright color) */
+  .glassmorphism:not(#mainSidebar):not(.sidebar) {
     background: rgba(13, 19, 34, 0.97) !important;
   }
 
@@ -1173,41 +1173,54 @@ input:checked + .slider:before {
     margin-bottom: 12px !important;
   }
 
-  /* Sidebar slide-in panel: fully opaque, brighter navy */
+  /* Sidebar slide-in panel: bright navy, fully opaque */
   #mainSidebar,
   .sidebar {
-    background: #1a2f4a !important;   /* +40% brighter than before */
+    background: #1e3f6e !important;   /* clearly visible dark blue */
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    border-right: 2px solid rgba(45, 212, 191, 0.35) !important;
-    box-shadow: 4px 0 50px rgba(0, 0, 0, 0.9) !important;
+    border-right: 2px solid rgba(45, 212, 191, 0.4) !important;
+    box-shadow: 6px 0 50px rgba(0, 0, 0, 0.85) !important;
+    width: 82vw !important;
+    max-width: 310px !important;
   }
 
-  /* Dark overlay backdrop when sidebar is open */
+  /* Dark overlay backdrop: covers rest of screen */
   #sidebarBackdrop {
-    background: rgba(0, 0, 0, 0.92) !important;
+    background: rgba(0, 0, 0, 0.88) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
 
-  /* ── Sidebar Nav Item Brightness (+40%) ── */
+  /* Fix Download App anchor overflow — it has overflow-hidden class */
+  #sidebarNav a.nav-item {
+    overflow: visible !important;
+  }
+
+  /* ── All nav items AND anchor links: bright (+40%) ── */
   .sidebar .nav-item,
-  #sidebarNav .nav-item {
+  #sidebarNav .nav-item,
+  #sidebarNav a {
     color: #ffffff !important;
     opacity: 1 !important;
     filter: brightness(1.4);
   }
   .sidebar .nav-item span,
-  #sidebarNav .nav-item span {
+  #sidebarNav .nav-item span,
+  #sidebarNav a span {
     color: #ffffff !important;
     font-size: 0.95rem !important;
     font-weight: 500 !important;
     opacity: 1 !important;
     text-shadow: 0 0 12px rgba(255,255,255,0.25);
+    white-space: nowrap !important;  /* prevent Download App from truncating */
+    overflow: visible !important;
+    text-overflow: unset !important;
   }
   .sidebar .nav-item i,
-  #sidebarNav .nav-item i {
-    color: #5eead4 !important;   /* brighter teal */
+  #sidebarNav .nav-item i,
+  #sidebarNav a i {
+    color: #5eead4 !important;
     opacity: 1 !important;
     font-size: 1.15rem !important;
     filter: drop-shadow(0 0 4px rgba(94, 234, 212, 0.6));
@@ -1219,7 +1232,7 @@ input:checked + .slider:before {
     background: rgba(45, 212, 191, 0.25) !important;
     border-left: 3px solid #2dd4bf !important;
     color: #ffffff !important;
-    filter: brightness(1.0); /* already bright, no boost needed */
+    filter: brightness(1.0);
   }
   .sidebar .nav-item.active span,
   #sidebarNav .nav-item.active span {
@@ -1233,11 +1246,7 @@ input:checked + .slider:before {
     filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.9));
   }
 
-  /* Logo area text */
-  .sidebar .logo-area,
-  #mainSidebar .logo-area {
-    opacity: 1 !important;
-  }
+  /* Logo area */
   .sidebar .logo-area span,
   #mainSidebar .logo-area span {
     color: #ffffff !important;
