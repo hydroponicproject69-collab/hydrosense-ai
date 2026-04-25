@@ -61,6 +61,68 @@
     <div class="absolute inset-0 opacity-10" id="ambientParticles"></div>
   </div>
 
+  <!-- ═══ Mobile: Desktop Site Required Prompt ═══ -->
+  <div id="desktopPrompt" style="
+    display: none;
+    position: fixed; inset: 0;
+    z-index: 999999;
+    background: #070d1a;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+  ">
+    <div style="max-width: 340px; width: 100%;">
+      <div style="font-size: 3.5rem; margin-bottom: 16px;">🖥️</div>
+      <h2 style="color: #2dd4bf; font-size: 1.5rem; font-weight: 800; margin: 0 0 10px;">Desktop Site Required</h2>
+      <p style="color: #94a3b8; font-size: 0.92rem; line-height: 1.65; margin: 0 0 24px;">
+        HydroSense AI is built for desktop view.<br>
+        Please enable <strong style="color:#e2e8f0;">Desktop Site</strong> in your browser, then reload.
+      </p>
+
+      <!-- Instructions card -->
+      <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(45,212,191,0.2); border-radius: 14px; padding: 18px; margin-bottom: 22px; text-align: left;">
+        <p style="color:#2dd4bf; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin:0 0 8px;">📱 Chrome (Android)</p>
+        <p style="color:#cbd5e1; font-size:0.87rem; line-height:1.7; margin:0 0 14px;">
+          Tap <strong style="color:#fff;">⋮</strong> (top right) → tap <strong style="color:#fff;">"Desktop site"</strong>
+        </p>
+        <hr style="border:none; border-top:1px solid rgba(255,255,255,0.07); margin:0 0 14px;">
+        <p style="color:#2dd4bf; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin:0 0 8px;">🍎 Safari (iPhone)</p>
+        <p style="color:#cbd5e1; font-size:0.87rem; line-height:1.7; margin:0;">
+          Tap <strong style="color:#fff;">aA</strong> in address bar → <strong style="color:#fff;">"Request Desktop Website"</strong>
+        </p>
+      </div>
+
+      <button onclick="location.reload()" style="
+        width:100%; padding:14px;
+        background: linear-gradient(135deg,#2dd4bf,#14b8a6);
+        color:#0f172a; border:none; border-radius:12px;
+        font-size:1rem; font-weight:700; cursor:pointer;
+        margin-bottom:10px; font-family:'Inter',sans-serif;
+        box-shadow: 0 4px 20px rgba(45,212,191,0.35);
+      ">↺ I've enabled it — Reload</button>
+
+      <button onclick="document.getElementById('desktopPrompt').style.display='none'" style="
+        width:100%; padding:12px;
+        background:transparent; color:#475569;
+        border:1px solid rgba(255,255,255,0.07); border-radius:12px;
+        font-size:0.85rem; cursor:pointer; font-family:'Inter',sans-serif;
+      ">Continue with limited view</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      var mobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      var desktopMode = window.innerWidth >= 900;
+      if (mobile && !desktopMode) {
+        document.getElementById('desktopPrompt').style.display = 'flex';
+      }
+    })();
+  </script>
+
   <!-- Smart Toasts Container -->
   <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-4 pointer-events-none w-80"></div>
 
