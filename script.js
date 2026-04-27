@@ -425,16 +425,22 @@ function listenToSensors() {
     if (data.latest) data = data.latest; // Handle nested latest
     
     // Robust parsing using multiple possible Firebase JSON schema keys
-    let temp = data.air_temperature !== undefined ? Number(data.air_temperature) : (data.temperature !== undefined ? Number(data.temperature) : null);
-    let waterTemp = data.water_temperature !== undefined ? Number(data.water_temperature) : (data.water_temp !== undefined ? Number(data.water_temp) : null);
+    let temp = data.airTemperature !== undefined ? Number(data.airTemperature) : (data.air_temperature !== undefined ? Number(data.air_temperature) : (data.temperature !== undefined ? Number(data.temperature) : null));
+    let waterTemp = data.waterTemperature !== undefined ? Number(data.waterTemperature) : (data.water_temperature !== undefined ? Number(data.water_temperature) : (data.water_temp !== undefined ? Number(data.water_temp) : null));
     const hum = data.humidity !== undefined ? Number(data.humidity) : null;
     const ph = data.ph !== undefined ? Number(data.ph) : null;
-    const ec = data.tds !== undefined ? Number(data.tds) : (data.ec !== undefined ? Number(data.ec) : null);
+    let ec = data.ec !== undefined ? Number(data.ec) : null;
+    if (ec === null && data.tds !== undefined) {
+      ec = Number(data.tds) / 500.0;
+    }
     const flow = data.flow_rate !== undefined ? Number(data.flow_rate) : (data.flow !== undefined ? Number(data.flow) : null);
     const co2 = data.co2 !== undefined ? Number(data.co2) : null;
-    const light = data.sunlight !== undefined ? Number(data.sunlight) : (data.light_lux !== undefined ? Number(data.light_lux) : (data.light !== undefined ? Number(data.light) : null));
+    let light = data.sunlight !== undefined ? Number(data.sunlight) : (data.light_lux !== undefined ? Number(data.light_lux) : (data.light !== undefined ? Number(data.light) : null));
+    if (light !== null && light <= 100 && data.light_lux === undefined) {
+      light = light * 100;
+    }
     const leak = data.leak !== undefined ? Boolean(data.leak) : false; 
-    const waterLevel = data.water_level !== undefined ? Number(data.water_level) : (data.water !== undefined ? Number(data.water) : 50);
+    const waterLevel = data.waterLevel !== undefined ? Number(data.waterLevel) : (data.water_level !== undefined ? Number(data.water_level) : (data.water !== undefined ? Number(data.water) : 50));
     
     // Apply unit conversion before threshold checks
     if (window.sysConfig.tempUnit === 'F') {
@@ -762,7 +768,13 @@ if (logoutBtn) {
 let lastEspUpdate = 0;
 const lastUpdateRef = ref(db, 'system/lastUpdate');
 onValue(lastUpdateRef, (snap) => {
-  lastEspUpdate = snap.val() || 0;
+  const val = snap.val();
+  if (typeof val === 'number') lastEspUpdate = Math.max(lastEspUpdate, val);
+});
+const sensorsUpdateRef = ref(db, 'sensors/lastUpdate');
+onValue(sensorsUpdateRef, (snap) => {
+  const val = snap.val();
+  if (typeof val === 'number') lastEspUpdate = Math.max(lastEspUpdate, val);
 });
 
 const healthRef = ref(db, 'system/healthScore');
@@ -833,7 +845,7 @@ onValue(connectedRef, (snap) => {
 });
 
 setInterval(() => {
-  const espAlive = lastEspUpdate > 0 && (Date.now() - lastEspUpdate) < 15000;
+  const espAlive = lastEspUpdate > 0 && Math.abs(Date.now() - lastEspUpdate) < 60000;
 
   // Connection badge (header)
   if (!espAlive) {
@@ -1119,7 +1131,7 @@ function initAccountSettings() {
   setInterval(() => {
     const el = document.getElementById('sysEspStatus');
     if(!el) return;
-    const alive = (Date.now() - lastEspUpdate) < 15000;
+    const alive = lastEspUpdate > 0 && Math.abs(Date.now() - lastEspUpdate) < 60000;
     el.innerText = alive ? 'Online ●' : 'Offline ●';
     el.className = alive ? 'text-xs font-bold text-emerald-400' : 'text-xs font-bold text-rose-400';
   }, 3000);
