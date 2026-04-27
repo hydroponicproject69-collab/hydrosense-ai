@@ -768,13 +768,23 @@ if (logoutBtn) {
 let lastEspUpdate = 0;
 const lastUpdateRef = ref(db, 'system/lastUpdate');
 onValue(lastUpdateRef, (snap) => {
-  const val = snap.val();
-  if (typeof val === 'number') lastEspUpdate = Math.max(lastEspUpdate, val);
+  let val = snap.val();
+  if (typeof val === 'string') val = Number(val);
+  if (typeof val === 'number' && !isNaN(val)) {
+    let ts = val;
+    if (ts < 20000000000) ts *= 1000; // Convert seconds to ms
+    lastEspUpdate = Math.max(lastEspUpdate, ts);
+  }
 });
 const sensorsUpdateRef = ref(db, 'sensors/lastUpdate');
 onValue(sensorsUpdateRef, (snap) => {
-  const val = snap.val();
-  if (typeof val === 'number') lastEspUpdate = Math.max(lastEspUpdate, val);
+  let val = snap.val();
+  if (typeof val === 'string') val = Number(val);
+  if (typeof val === 'number' && !isNaN(val)) {
+    let ts = val;
+    if (ts < 20000000000) ts *= 1000; // Convert seconds to ms
+    lastEspUpdate = Math.max(lastEspUpdate, ts);
+  }
 });
 
 const healthRef = ref(db, 'system/healthScore');
@@ -836,6 +846,12 @@ function setHeroTag(tagId, dotId, textId, isOnline, onText, offText) {
 }
 
 let firebaseConnected = false;
+let serverTimeOffset = 0;
+
+const offsetRef = ref(db, '.info/serverTimeOffset');
+onValue(offsetRef, (snap) => {
+  serverTimeOffset = snap.val() || 0;
+});
 
 // Detect Firebase RTDB connectivity via .info/connected
 const connectedRef = ref(db, '.info/connected');
@@ -845,7 +861,8 @@ onValue(connectedRef, (snap) => {
 });
 
 setInterval(() => {
-  const espAlive = lastEspUpdate > 0 && Math.abs(Date.now() - lastEspUpdate) < 60000;
+  const estimatedServerTime = Date.now() + serverTimeOffset;
+  const espAlive = lastEspUpdate > 0 && Math.abs(estimatedServerTime - lastEspUpdate) < 60000;
 
   // Connection badge (header)
   if (!espAlive) {
